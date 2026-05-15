@@ -1,0 +1,19 @@
+appId: com.example.aiautomationdashboard
+productName: AI Automation Dashboard
+files:
+  - dist/**
+  - dist/main/**
+  - main.js
+  - package.json
+  - upwork-discord-bot/**
+  - prompts/**
+asar: false
+mac:
+  category: public.app-category.developer-tools
+linux:
+  target:
+    - AppImage
+    - deb
+win:
+  target:
+    - nsis

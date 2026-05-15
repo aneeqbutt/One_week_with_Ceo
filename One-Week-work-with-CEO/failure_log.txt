@@ -1,0 +1,14 @@
+before removing:
+[22:47:59] ✅  [RdsI1U4WVh0QbPOUhF0F5] ✅ Service generated → "Zero-Conflict iCal Sync for WordPress and Hipcamp"
+[22:47:59] ℹ️   [RdsI1U4WVh0QbPOUhF0F5] 💾 STAGE 6 → Saving job + content to DB (atomic)...
+[22:47:59] ✅  [RdsI1U4WVh0QbPOUhF0F5] ✅ Saved → jobs_selected id: 69  product:✅  blog:✅  service:✅
+[22:47:59] ℹ️   [RdsI1U4WVh0QbPOUhF0F5] ⏳ STAGE 7 → Cooldown 6s then marking job processed...
+[22:48:05] ✅  [RdsI1U4WVh0QbPOUhF0F5] ✅ DONE — job fully processed and stored
+
+After removing:
+[23:09:58] ✅  [J8erYLPl7JO_ZchgvGJCp] ✅ Service generated → "GoHighLevel Lead Response & School Tour Booking Automation System"
+[23:09:58] ℹ️   [J8erYLPl7JO_ZchgvGJCp] 💾 STAGE 6 → Saving job + content to DB (atomic)...
+[23:09:58] ❌  [J8erYLPl7JO_ZchgvGJCp] ❌ STAGE 6 FAILED — DB save: column "title" of relation "jobs_selected" does not exist
+[23:09:58] ❌  [J8erYLPl7JO_ZchgvGJCp]    Stack: at C:\Users\aneeq\Desktop\Upwork_proj_advanced\One-Week-work-with-CEO\node_modules\pg\lib\client.js:631:17
+
+

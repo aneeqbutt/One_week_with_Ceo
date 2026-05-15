@@ -1,0 +1,28 @@
+{
+  "name": "sync-service",
+  "version": "1.0.0",
+  "description": "Standalone DB1→DB2 sync bridge microservice",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev --name init",
+    "db:studio": "npx prisma studio",
+    "flush": "node scripts/flush-all.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
+    "pg": "^8.12.0",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  }
+}

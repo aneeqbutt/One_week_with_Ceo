@@ -1,0 +1,500 @@
+{
+  "folders": [
+    {
+      "id": "68f1f0982a408ed9c1f0d423",
+      "name": "Auth zairella848@gmail",
+      "shared": false,
+      "associatedProfiles": [
+        "68f1f257edf71ac83539b7ca",
+        "68f1fd197cd58a4b40cc668b",
+        "68f20381ced49fe38e304358",
+        "68f20936633b9e42c518a484",
+        "68f209f898283342dc1475d6",
+        "68f2186513ae80d5422de005",
+        "68f21f5fa55afda8996fe4ac",
+        "68f226b4633b9e42c53aa18c",
+        "68f22c5d98283342dc3b6003",
+        "68f22ef806712406d67b4612",
+        "68f230b106712406d67d1dec",
+        "68f2c6a8ced49fe38ef89dae",
+        "68f63d156f49733e3a1786d4",
+        "68f6472a266f7641989d3ebc",
+        "68f66a9eacd39630299625e8",
+        "68f66d0b266f764198c5fb1e",
+        "68f671bb266f764198cb0a29",
+        "68f6762f679356cf268228c2",
+        "68f677416e8f2954eb27a804",
+        "68f67cbf7ff9afb0c1ff95ed",
+        "68f680bf679356cf268c59a3",
+        "68f684279e9edf9216e81e70",
+        "68f68b7f4975fa8ef8a7056c",
+        "68f724c54975fa8ef82c5063",
+        "68f72e34606d9092f9215313",
+        "68f7337e6f49733e3afb4fbe",
+        "68f737b71de91a1fb84fcdf2",
+        "68f73b3b606d9092f92f9fec",
+        "68f73d5fb45567d1abd38d55",
+        "68f73f3f85df106c08dff349",
+        "68f7413785df106c08e23671",
+        "68f745dc4975fa8ef8501886",
+        "68f748681de91a1fb86354f1",
+        "68f74d549e9edf9216a4ecc9",
+        "68f752832aff81b74acf8ec4",
+        "68f76e257ff9afb0c1e7d653",
+        "68f771f11de91a1fb88fa0da",
+        "68f774507ff9afb0c1ee7980",
+        "68f775f629680fc81f4e52a2",
+        "68f777e408b2d0219aea7c03",
+        "68f779eb08b2d0219aecd4ad",
+        "68f77c402aff81b74afbb92c",
+        "68f77e1785df106c08247adc",
+        "68f78007e6103876083af51a",
+        "68f78259e6103876083d9e4c",
+        "68f7b0a185df106c085e6e99",
+        "68f8e44108b2d0219a5b2b21"
+      ]
+    },
+    {
+      "id": "68fba71e40fb798d3e2dc07f",
+      "name": "day 1",
+      "shared": false,
+      "associatedProfiles": [
+        "68f73b3b606d9092f92f9fec",
+        "68f73d5fb45567d1abd38d55",
+        "68f73f3f85df106c08dff349",
+        "68f7413785df106c08e23671",
+        "68f745dc4975fa8ef8501886",
+        "68f748681de91a1fb86354f1",
+        "68f74d549e9edf9216a4ecc9",
+        "68f752832aff81b74acf8ec4",
+        "68f76e257ff9afb0c1e7d653",
+        "68f771f11de91a1fb88fa0da",
+        "68f774507ff9afb0c1ee7980",
+        "68f775f629680fc81f4e52a2",
+        "68f777e408b2d0219aea7c03",
+        "68f779eb08b2d0219aecd4ad",
+        "68f77c402aff81b74afbb92c",
+        "68f77e1785df106c08247adc",
+        "68f78007e6103876083af51a",
+        "68f78259e6103876083d9e4c",
+        "68f7b0a185df106c085e6e99",
+        "68f8e44108b2d0219a5b2b21"
+      ]
+    },
+    {
+      "id": "68fba732d89ab4e5520b11f1",
+      "name": "day 2",
+      "shared": false,
+      "associatedProfiles": [
+        "68f226b4633b9e42c53aa18c",
+        "68f22c5d98283342dc3b6003",
+        "68f22ef806712406d67b4612",
+        "68f230b106712406d67d1dec",
+        "68f2c6a8ced49fe38ef89dae",
+        "68f63d156f49733e3a1786d4",
+        "68f6472a266f7641989d3ebc",
+        "68f66a9eacd39630299625e8",
+        "68f66d0b266f764198c5fb1e",
+        "68f671bb266f764198cb0a29",
+        "68f6762f679356cf268228c2",
+        "68f677416e8f2954eb27a804",
+        "68f67cbf7ff9afb0c1ff95ed",
+        "68f680bf679356cf268c59a3",
+        "68f684279e9edf9216e81e70",
+        "68f68b7f4975fa8ef8a7056c",
+        "68f724c54975fa8ef82c5063",
+        "68f72e34606d9092f9215313",
+        "68f7337e6f49733e3afb4fbe",
+        "68f737b71de91a1fb84fcdf2"
+      ]
+    },
+    {
+      "id": "68fba74304d87caa057052b1",
+      "name": "day 3",
+      "shared": false,
+      "associatedProfiles": [
+        "68f1f257edf71ac83539b7ca",
+        "68f1fd197cd58a4b40cc668b",
+        "68f20381ced49fe38e304358",
+        "68f20936633b9e42c518a484",
+        "68f209f898283342dc1475d6",
+        "68f2186513ae80d5422de005",
+        "68f21f5fa55afda8996fe4ac",
+        "68ded5388a07957bdf5fd5cb",
+        "68e195571410aac3ef8d44f4",
+        "68e195698a07957bdf1c74d7",
+        "68e19575877f4a20c9525bb9",
+        "68e195b15128160406779178",
+        "68e195be84be17c00e5357c3",
+        "68e195ccbf87c9fa75081ce9",
+        "68e195dc512816040677b227",
+        "68e195ef512816040677bf40",
+        "68e19604f4ade3d588a070d3",
+        "68e1961184be17c00e538bc1",
+        "68ee794cec25c00c952d7b69",
+        "68ee794c6d69970c4bd0fea0"
+      ]
+    },
+    {
+      "id": "68fba74b6e161f0d6f592fa7",
+      "name": "day 4",
+      "shared": false,
+      "associatedProfiles": [
+        "68d40afe10aa9eafb2dbab26",
+        "68d40b2afcdecc5844190737",
+        "68d40d946072ee3194f2585a",
+        "68daeb1d6c950ed5ec1c3661",
+        "68daeb2f00a168f9f7035925",
+        "68daeb3f5054454f16143e4e",
+        "68daeb53724f79adf96a0683",
+        "68daeb65724f79adf96a1ad0",
+        "68dda54153ec01b3691b1709",
+        "68dda566c2ed56786e6336c2",
+        "68dda59be74665ca9862ac06",
+        "68dda5b16330c2d20ce4c9b2",
+        "68dda5c5c2ed56786e6386cf",
+        "68ded49a1410aac3efd0fba1",
+        "68ded4a38a07957bdf5f3a94",
+        "68ded4b2877f4a20c994c8eb",
+        "68ded4e9e74665ca9890e9b1",
+        "68ded5023262e57af6f03784",
+        "68ded51253ec01b3694a03ee"
+      ]
+    },
+    {
+      "id": "68fba7561a8a515b27794e1c",
+      "name": "day 5",
+      "shared": false,
+      "associatedProfiles": [
+        "66a8eb65b17332803987fd99",
+        "66a8edf41c06bc3046baf4c6",
+        "66a8fe10a634afdcb64952d8",
+        "66b2083128f2db208e5c9664",
+        "66bf4d867db263e0f884d155",
+        "66e1b002bf585f949b99c075",
+        "66e42b34d690fccf1a8ac144",
+        "66f4209308b772be8dbe5205",
+        "67064897905258caea748545",
+        "68b55534c0035a34d20ea04f",
+        "68c5586245178e3e3b06a36a",
+        "68c559c145178e3e3b082f35",
+        "68c55bf92038e8e452ebda55",
+        "68c55d44ccc4218ae271af0f",
+        "68c55e8945178e3e3b0d43ae",
+        "68c7ff561218229924a38385",
+        "68d40a7a7affb89fb9d952d1",
+        "68d40ad70c1a88ab446ba49d"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "name": "paul-733",
+      "id": "68f8e44108b2d0219a5b2b21",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "emilyd10",
+      "id": "68f7b0a185df106c085e6e99",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "pun-4",
+      "id": "68f78259e6103876083d9e4c",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "atri-5",
+      "id": "68f78007e6103876083af51a",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "bru-6",
+      "id": "68f77e1785df106c08247adc",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "ivie6",
+      "id": "68f77c402aff81b74afbb92c",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "only-08",
+      "id": "68f779eb08b2d0219aecd4ad",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "thrill-0",
+      "id": "68f777e408b2d0219aea7c03",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "eresh-9",
+      "id": "68f775f629680fc81f4e52a2",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "land-p",
+      "id": "68f774507ff9afb0c1ee7980",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "scul3",
+      "id": "68f771f11de91a1fb88fa0da",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "brain587",
+      "id": "68f76e257ff9afb0c1e7d653",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "tom-wil4",
+      "id": "68f752832aff81b74acf8ec4",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "kimber-56",
+      "id": "68f74d549e9edf9216a4ecc9",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "zan876",
+      "id": "68f748681de91a1fb86354f1",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "mac347",
+      "id": "68f745dc4975fa8ef8501886",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "par35",
+      "id": "68f7413785df106c08e23671",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "nats6",
+      "id": "68f73f3f85df106c08dff349",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "scba6",
+      "id": "68f73d5fb45567d1abd38d55",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "sust56",
+      "id": "68f73b3b606d9092f92f9fec",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 1"
+      ]
+    },
+    {
+      "name": "anie45",
+      "id": "68f737b71de91a1fb84fcdf2",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "asia930",
+      "id": "68f7337e6f49733e3afb4fbe",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "kaie7",
+      "id": "68f72e34606d9092f9215313",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "pr97vjc1a-ux",
+      "id": "68f724c54975fa8ef82c5063",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "jesi1209",
+      "id": "68f68b7f4975fa8ef8a7056c",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "ryansherman4595",
+      "id": "68f684279e9edf9216e81e70",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "david-635",
+      "id": "68f680bf679356cf268c59a3",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "kylejones9913@",
+      "id": "68f67cbf7ff9afb0c1ff95ed",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "diana-pp",
+      "id": "68f677416e8f2954eb27a804",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    },
+    {
+      "name": "nik11192",
+      "id": "68f6762f679356cf268228c2",
+      "folders": [
+        "Auth zairella848@gmail",
+        "day 2"
+      ]
+    }
+  ],
+  "folderAssignments": {
+    "Auth zairella848@gmail": [
+      "paul-733",
+      "emilyd10",
+      "pun-4",
+      "atri-5",
+      "bru-6",
+      "ivie6",
+      "only-08",
+      "thrill-0",
+      "eresh-9",
+      "land-p",
+      "scul3",
+      "brain587",
+      "tom-wil4",
+      "kimber-56",
+      "zan876",
+      "mac347",
+      "par35",
+      "nats6",
+      "scba6",
+      "sust56",
+      "anie45",
+      "asia930",
+      "kaie7",
+      "pr97vjc1a-ux",
+      "jesi1209",
+      "ryansherman4595",
+      "david-635",
+      "kylejones9913@",
+      "diana-pp",
+      "nik11192"
+    ],
+    "day 1": [
+      "paul-733",
+      "emilyd10",
+      "pun-4",
+      "atri-5",
+      "bru-6",
+      "ivie6",
+      "only-08",
+      "thrill-0",
+      "eresh-9",
+      "land-p",
+      "scul3",
+      "brain587",
+      "tom-wil4",
+      "kimber-56",
+      "zan876",
+      "mac347",
+      "par35",
+      "nats6",
+      "scba6",
+      "sust56"
+    ],
+    "day 2": [
+      "anie45",
+      "asia930",
+      "kaie7",
+      "pr97vjc1a-ux",
+      "jesi1209",
+      "ryansherman4595",
+      "david-635",
+      "kylejones9913@",
+      "diana-pp",
+      "nik11192"
+    ]
+  }
+}

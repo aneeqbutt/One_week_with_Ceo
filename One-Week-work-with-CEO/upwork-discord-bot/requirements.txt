@@ -1,0 +1,14 @@
+selenium
+beautifulsoup4
+requests
+cloudscraper
+discord.py
+sqlalchemy
+psycopg2-binary   # PostgreSQL
+python-dotenv
+webdriver-manager
+seleniumbase
+curl-cffi
+python-dateutil
+google-generativeai
+nest-asyncio

@@ -1,0 +1,40 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "src\\logs\\.ca538367d037ae90d9360c9969be99f880c3b6ff-audit.json",
+    "files": [
+        {
+            "date": 1778421268912,
+            "name": "src\\logs\\sync-error-2026-05-10.log",
+            "hash": "416ef7460a58076ad931e98cd9b239ffa2be151c092f4932351999f8479150a0"
+        },
+        {
+            "date": 1778482067976,
+            "name": "src\\logs\\sync-error-2026-05-11.log",
+            "hash": "90dec148a0381a1854a174cb4a910ccc57ee5fd232a514b2fefbd78ad3421892"
+        },
+        {
+            "date": 1778564858615,
+            "name": "src\\logs\\sync-error-2026-05-12.log",
+            "hash": "0dbf43c858de79405e658ce30efe893d5d0f4e6e7852cbbc95f982ceedad40f1"
+        },
+        {
+            "date": 1778677302347,
+            "name": "src\\logs\\sync-error-2026-05-13.log",
+            "hash": "9888d5d44b66ae9f1d96b111ea33549a045939452ced363000a619665b665297"
+        },
+        {
+            "date": 1778699424604,
+            "name": "src\\logs\\sync-error-2026-05-14.log",
+            "hash": "e86ee176f308c39604b7861fdcdc962952bae3bf4a6b353fc90d9e451aaf49a8"
+        },
+        {
+            "date": 1778837216442,
+            "name": "src\\logs\\sync-error-2026-05-15.log",
+            "hash": "688665ec74275e19dcd6bfc8b062ca4d6fa4d574d993eb7c0bca1b67158a3da4"
+        }
+    ],
+    "hashType": "sha256"
+}

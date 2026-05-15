@@ -1,0 +1,228 @@
+
+--- 2025-11-21T12:39:37.234Z JOB 021991813092932214031 ---
+STDOUT:
+
+STDERR:
+
+
+--- 2025-11-21T12:40:36.367Z JOB 021991813092932214031 ---
+STDOUT:
+
+STDERR:
+
+
+--- 2025-11-21T12:44:07.316Z JOB 021991813092932214031 ---
+STDOUT:
+
+STDERR:
+
+
+--- 2025-11-21T12:46:32.993Z JOB 021991813092932214031 ---
+STDOUT:
+
+STDERR:
+
+
+--- 2025-11-21T12:47:37.786Z JOB 021991813092932214031 ---
+STDOUT:
+
+STDERR:
+
+
+--- 2025-11-21T12:55:45.139Z JOB 021991813092932214031 ---
+STDOUT:
+[Auth Bot] Starting browser engine: Chrome attempt (uc) | force_firefox=False is_ubuntu=False
+======================== {threading.py:1009:SB} starts =========================
+[Auth Bot] Waiting for Cloudflare bypass...
+[Auth Bot] Attempt 1: Clicked captcha
+[Auth Bot] ✅ Cloudflare bypassed on attempt 1!
+[Auth Bot] Loading job listings...
+[Auth Bot] ✅ Jobs loaded
+[Auth Bot] Injecting network monitor...
+[Auth Bot] ✅ Network monitor active
+[Auth Bot] Looking for pagination...
+[Auth Bot] ✅ Clicked page 2: button[data-ev-page_index="2"]
+[Auth Bot] Forcing a job details request (click first job card if available)...
+[Auth Bot] ⚠️ Job details trigger error: 
+exceptionId: 3
+text: Uncaught
+lineNumber: 0
+columnNumber: 69
+scriptId: 317
+exception: 
+	type: object
+	subtype: error
+	className: SyntaxError
+	description: SyntaxError: Illegal return statement
+	objectId: 8282838134828452555.1.5
+
+
+[Auth Bot] Waiting for GraphQL / search requests...
+[Auth Bot] Analyzing network requests...
+[Auth Bot] Captured 1 relevant requests
+[Auth Bot] 🗂 Saved captured requests to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\captured_requests_debug.json
+[Auth Bot] ✅ Headers captured from fetch
+[Auth Bot] ✅ Visitor ID already present in headers
+[Auth Bot] Capturing cookies (post job details click)...
+[Auth Bot] ✅ Captured 46 cookies
+[Auth Bot] ✅ Cookies saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\upwork_cookies.json
+=================== {threading.py:1009:SB} passed in 42.63s ====================
+
+[Auth Bot] 📊 Capture Summary:
+[Auth Bot] Headers captured: True (8 keys)
+[Auth Bot] Cookies captured: True (46 keys)
+[Auth Bot] Condition check: headers_found and cookies_found = True
+[Auth Bot] ✅ Headers saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\headers_upwork.json
+[Auth Bot] ✅ Headers also saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Auth Bot] ✅ Cookies also saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Auth Bot] 📋 Header sample:
+  X-Upwork-Accept-Language: en-US...
+  vnd-eo-visitorId: 39.45.31.239.1763729701894000...
+  Accept-Encoding: gzip...
+  Content-Type: application/json...
+  vnd-eo-trace-id: 9a2056cbf131d56b-KHI...
+
+[Auth Bot] 🧪 Testing captured credentials...
+[Auth Bot] Headers to test: 10 keys
+[Auth Bot] Cookies to test: 46 keys
+[Auth Bot] ✅ Re-saved enriched headers with 21 total keys
+
+======================================================================
+TESTING JOB DETAILS FETCH
+======================================================================
+[Test] Using cloudscraper session
+[Test] Testing with job ID: ~0140c36fa1e87afd2a
+[Test] Request URL: https://www.upwork.com/api/graphql/v1?alias=gql-query-get-visitor-job-details
+[Test] Attempt 1: HTTP 403
+[Test] ⚠️ Got 403; retrying after 3s...
+[Test] Attempt 2: HTTP 403
+[Test] ⚠️ Got 403; retrying after 6s...
+[Test] Attempt 3: HTTP 403
+[Test] ❌ Final attempt received 403
+
+[Auth Bot] ⚠️ Credentials validation FAILED!
+[Auth Bot] Headers/cookies were captured but may not work for all requests
+[Auth Bot] This could be normal for public-only API access
+{"id": "021991813092932214031", "title": "Authentication Required", "description": "Authentication error 403", "budget": "Not specified", "currency_code": "USD", "total_applicants": 0, "total_hired": 0, "skills": [], "posted_on": "Unknown", "category": "", "status": "Error"}
+
+STDERR:
+Fetching detailed information for job ID: 021991813092932214031
+Using formatted job ID for API: ~021991813092932214031
+[Job Details] Loaded 21 headers from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Job Details] Loaded 46 cookies from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Job Details] Using cloudscraper with Windows platform
+[Job Details] Making API request (attempt 1/2)
+[Job Details] Response Status: 403
+[Job Details] \u26a0\ufe0f 403 Authentication Error (attempt 1/2)
+[Job Details] Attempting to refresh authentication...
+[Job Details] \u26a0\ufe0f 401 Error detected - refreshing authentication...
+[Job Details] Running auth bot in separate thread...
+[Job Details] ✅ Authentication refreshed successfully!
+[Job Details] ✅ Auth refreshed, retrying job details fetch...
+[Job Details] Loaded 21 headers from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Job Details] Loaded 46 cookies from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Job Details] Using cloudscraper with Windows platform
+[Job Details] Making API request (attempt 2/2)
+[Job Details] Response Status: 403
+[Job Details] ⚠️ 403 Authentication Error (attempt 2/2)
+[Job Details] ❌ Max retries reached
+
+
+--- 2025-11-21T12:58:21.175Z JOB 021991813092932214031 ---
+STDOUT:
+[Auth Bot] Starting browser engine: Chrome attempt (uc) | force_firefox=False is_ubuntu=False
+======================== {threading.py:1009:SB} starts =========================
+[Auth Bot] Waiting for Cloudflare bypass...
+[Auth Bot] Attempt 1: Clicked captcha
+[Auth Bot] ✅ Cloudflare bypassed on attempt 1!
+[Auth Bot] Loading job listings...
+[Auth Bot] ✅ Jobs loaded
+[Auth Bot] Injecting network monitor...
+[Auth Bot] ✅ Network monitor active
+[Auth Bot] Looking for pagination...
+[Auth Bot] ✅ Clicked page 2: button[data-ev-page_index="2"]
+[Auth Bot] Forcing a job details request (click first job card if available)...
+[Auth Bot] ⚠️ Job details trigger error: 
+exceptionId: 3
+text: Uncaught
+lineNumber: 0
+columnNumber: 69
+scriptId: 317
+exception: 
+	type: object
+	subtype: error
+	className: SyntaxError
+	description: SyntaxError: Illegal return statement
+	objectId: 1236522951838683086.1.5
+
+
+[Auth Bot] Waiting for GraphQL / search requests...
+[Auth Bot] Analyzing network requests...
+[Auth Bot] Captured 1 relevant requests
+[Auth Bot] 🗂 Saved captured requests to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\captured_requests_debug.json
+[Auth Bot] ✅ Headers captured from fetch
+[Auth Bot] ✅ Visitor ID already present in headers
+[Auth Bot] Capturing cookies (post job details click)...
+[Auth Bot] ✅ Captured 46 cookies
+[Auth Bot] ✅ Cookies saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\upwork_cookies.json
+=================== {threading.py:1009:SB} passed in 39.57s ====================
+
+[Auth Bot] 📊 Capture Summary:
+[Auth Bot] Headers captured: True (8 keys)
+[Auth Bot] Cookies captured: True (46 keys)
+[Auth Bot] Condition check: headers_found and cookies_found = True
+[Auth Bot] ✅ Headers saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\headers_upwork.json
+[Auth Bot] ✅ Headers also saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Auth Bot] ✅ Cookies also saved to C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Auth Bot] 📋 Header sample:
+  X-Upwork-Accept-Language: en-US...
+  vnd-eo-visitorId: 39.45.31.239.1763729858708000...
+  Accept-Encoding: gzip...
+  Content-Type: application/json...
+  vnd-eo-trace-id: 9a205aa011e2b7f7-KHI...
+
+[Auth Bot] 🧪 Testing captured credentials...
+[Auth Bot] Headers to test: 10 keys
+[Auth Bot] Cookies to test: 46 keys
+[Auth Bot] ✅ Re-saved enriched headers with 21 total keys
+
+======================================================================
+TESTING JOB DETAILS FETCH
+======================================================================
+[Test] Using cloudscraper session
+[Test] Testing with job ID: ~0140c36fa1e87afd2a
+[Test] Request URL: https://www.upwork.com/api/graphql/v1?alias=gql-query-get-visitor-job-details
+[Test] Attempt 1: HTTP 403
+[Test] ⚠️ Got 403; retrying after 3s...
+[Test] Attempt 2: HTTP 403
+[Test] ⚠️ Got 403; retrying after 6s...
+[Test] Attempt 3: HTTP 403
+[Test] ❌ Final attempt received 403
+
+[Auth Bot] ⚠️ Credentials validation FAILED!
+[Auth Bot] Headers/cookies were captured but may not work for all requests
+[Auth Bot] This could be normal for public-only API access
+{"id": "021991813092932214031", "title": "Authentication Required", "description": "Authentication error 403", "budget": "Not specified", "currency_code": "USD", "total_applicants": 0, "total_hired": 0, "skills": [], "posted_on": "Unknown", "category": "", "status": "Error"}
+
+STDERR:
+Fetching detailed information for job ID: 021991813092932214031
+Using formatted job ID for API: ~021991813092932214031
+[Job Details] Loaded 15 headers from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Job Details] Loaded 15 cookies from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Job Details] Using cloudscraper with Windows platform
+[Job Details] Making API request (attempt 1/2)
+[Job Details] Response Status: 401
+[Job Details] \u26a0\ufe0f 401 Authentication Error (attempt 1/2)
+[Job Details] Attempting to refresh authentication...
+[Job Details] \u26a0\ufe0f 401 Error detected - refreshing authentication...
+[Job Details] Running auth bot in separate thread...
+[Job Details] ✅ Authentication refreshed successfully!
+[Job Details] ✅ Auth refreshed, retrying job details fetch...
+[Job Details] Loaded 21 headers from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_headers.json
+[Job Details] Loaded 46 cookies from C:\Users\LAptopa\OneDrive\Desktop\Github-SEOv2\ai-automation-dashboard\upwork-discord-bot\scraper\job_details_cookies.json
+[Job Details] Using cloudscraper with Windows platform
+[Job Details] Making API request (attempt 2/2)
+[Job Details] Response Status: 403
+[Job Details] ⚠️ 403 Authentication Error (attempt 2/2)
+[Job Details] ❌ Max retries reached
+

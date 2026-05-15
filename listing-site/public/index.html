@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Listing Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:             #0a0c12;
+      --surface:        #111318;
+      --surface-2:      #1a1d27;
+      --border:         rgba(255,255,255,0.07);
+      --border-strong:  rgba(255,255,255,0.13);
+      --accent:         #6366f1;
+      --accent-dim:     rgba(99,102,241,0.15);
+      --accent-glow:    rgba(99,102,241,0.25);
+      --accent2:        #22d3ee;
+      --accent2-dim:    rgba(34,211,238,0.12);
+      --text:           #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted:          #475569;
+      --success:        #22c55e;
+      --success-dim:    rgba(34,197,94,0.12);
+      --error:          #ef4444;
+      --error-dim:      rgba(239,68,68,0.12);
+      --warn:           #f59e0b;
+      --warn-dim:       rgba(245,158,11,0.12);
+
+      /* shadow system */
+      --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+      --shadow-hover:   0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.3);
+      --shadow-modal:   0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
+      --shadow-btn:     0 0 14px rgba(99,102,241,0.3);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────────── */
+    header {
+      background: rgba(17,19,24,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .header-brand h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .header-brand .brand-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+    .header-badge {
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────────────────────── */
+    nav { display: flex; gap: 0.25rem; }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 0.35rem 0.8rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: color 0.15s, background 0.15s;
+      letter-spacing: 0.01em;
+    }
+    nav button:hover { color: var(--text-secondary); background: rgba(255,255,255,0.05); }
+    nav button.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Sync button (separated from nav) ─────────────────────────────────── */
+    #syncBtn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      padding: 0.38rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    #syncBtn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+    #syncBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+    #syncBtn i { width: 13px; height: 13px; }
+
+    /* ── Container ───────────────────────────────────────────────────────────── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.75rem 2rem; }
+
+    /* ── Stats bar ───────────────────────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 12px 0 0 12px;
+    }
+    .stat-card.s-jobs::before    { background: var(--accent); }
+    .stat-card.s-products::before{ background: var(--success); }
+    .stat-card.s-blogs::before   { background: var(--warn); }
+    .stat-card.s-services::before{ background: var(--accent2); }
+    .stat-card.s-sync::before    { background: var(--muted); }
+
+    .stat-card .lbl {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .stat-card .num {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stat-card.s-sync .num { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }
+
+    /* ── Filters ─────────────────────────────────────────────────────────────── */
+    .filters {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .filter-group:focus-within {
+      border-color: rgba(99,102,241,0.5);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .filter-group i {
+      width: 14px; height: 14px;
+      color: var(--muted);
+      margin-left: 0.7rem;
+      flex-shrink: 0;
+    }
+    .filters input, .filters select {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 0.48rem 0.75rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      min-width: 130px;
+    }
+    .filters input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 0.48rem 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: opacity 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow-btn);
+    }
+    .btn-primary:hover { opacity: 0.9; box-shadow: 0 0 20px var(--accent-glow); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      padding: 0.48rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--border-strong); color: var(--text); background: rgba(255,255,255,0.04); }
+
+    /* ── Cards grid ──────────────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.35rem;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .card:hover {
+      border-color: rgba(99,102,241,0.35);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+    }
+
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    /* ── Tags ────────────────────────────────────────────────────────────────── */
+    .tags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      padding: 0.18rem 0.55rem;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+    .tag.green  { background: var(--success-dim);  border-color: rgba(34,197,94,0.25);  color: var(--success); }
+    .tag.cyan   { background: var(--accent2-dim);  border-color: rgba(34,211,238,0.25); color: var(--accent2); }
+    .tag.yellow { background: var(--warn-dim);     border-color: rgba(245,158,11,0.25); color: var(--warn); }
+
+    /* ── Card counts ─────────────────────────────────────────────────────────── */
+    .counts {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.25rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .count-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .count-item i { width: 12px; height: 12px; }
+
+    /* ── Pagination ──────────────────────────────────────────────────────────── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .pagination button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.38rem 0.85rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .pagination button:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .pagination button:disabled { opacity: 0.35; cursor: default; }
+    .pagination span { color: var(--muted); font-size: 0.8rem; }
+
+    /* ── Modal ───────────────────────────────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+      box-shadow: var(--shadow-modal);
+    }
+    .modal h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+      padding-right: 2rem;
+    }
+    .modal-close {
+      position: absolute; top: 1.1rem; right: 1.1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+    .modal section { margin-bottom: 1.25rem; }
+    .modal section h3 {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .modal section p {
+      font-size: 0.86rem;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+    .modal section pre {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-size: 0.76rem;
+      overflow-x: auto;
+      color: #cdd9e5;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /* ── Audit table ─────────────────────────────────────────────────────────── */
+    .audit-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .audit-table th {
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border-strong);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .audit-table td {
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .audit-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .audit-table tbody tr:last-child td { border-bottom: none; }
+
+    .status-ok {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--success);
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .status-fail {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--error);
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .status-ok i, .status-fail i { width: 12px; height: 12px; }
+
+    /* ── Empty / loading ─────────────────────────────────────────────────────── */
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 4rem 2rem;
+      font-size: 0.86rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .empty i { width: 32px; height: 32px; opacity: 0.3; }
+
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ───────────────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 0.7rem 1.1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      max-width: 320px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Scrollbar ───────────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="brand-dot"></div>
+    <h1>Job Listing Platform</h1>
+    <span class="header-badge">live · DB2</span>
+  </div>
+  <div class="header-right">
+    <nav>
+      <button class="active" onclick="setTab('jobs',this)">Jobs</button>
+      <button onclick="setTab('blogs',this)">Blogs</button>
+      <button onclick="setTab('products',this)">Products</button>
+      <button onclick="setTab('services',this)">Services</button>
+      <button onclick="setTab('audit',this)">Audit Log</button>
+    </nav>
+    <button id="syncBtn" onclick="triggerSync()">
+      <i data-lucide="refresh-cw"></i> Sync Now
+    </button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats" id="stats">
+    <div class="stat-card s-jobs">
+      <div class="lbl">Jobs</div>
+      <div class="num" id="s-jobs">—</div>
+    </div>
+    <div class="stat-card s-products">
+      <div class="lbl">Products</div>
+      <div class="num" id="s-products">—</div>
+    </div>
+    <div class="stat-card s-blogs">
+      <div class="lbl">Blogs</div>
+      <div class="num" id="s-blogs">—</div>
+    </div>
+    <div class="stat-card s-services">
+      <div class="lbl">Services</div>
+      <div class="num" id="s-services">—</div>
+    </div>
+    <div class="stat-card s-sync">
+      <div class="lbl">Last Sync</div>
+      <div class="num" id="s-last">—</div>
+    </div>
+  </div>
+
+  <!-- Filters (shown only for Jobs) -->
+  <div class="filters" id="jobFilters">
+    <div class="filter-group">
+      <i data-lucide="tag"></i>
+      <input id="f-niche" placeholder="Niche…" />
+    </div>
+    <div class="filter-group">
+      <i data-lucide="layers"></i>
+      <input id="f-platform" placeholder="Platform…" />
+    </div>
+    <div class="filter-group">
+      <i data-lucide="wrench"></i>
+      <input id="f-tool" placeholder="Tool…" />
+    </div>
+    <button class="btn-primary" onclick="loadJobs(1)">Filter</button>
+    <button class="btn-ghost" onclick="clearFilters()">Clear</button>
+  </div>
+
+  <!-- Content area -->
+  <div id="content"><div class="empty"><span class="spinner"></span></div></div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-backdrop" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let currentTab  = 'jobs';
+  let currentPage = 1;
+  let totalPages  = 1;
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    loadStats();
+    loadJobs(1);
+    setInterval(loadStats, 15_000);
+    // Silently refresh content every 60s; skip if modal is open or user is filtering
+    setInterval(() => {
+      const modalOpen = document.getElementById('modal').classList.contains('open');
+      const anyFocus  = ['f-niche','f-platform','f-tool'].some(id => document.getElementById(id) === document.activeElement);
+      if (modalOpen || anyFocus) return;
+      if (currentTab === 'jobs')     loadJobs(currentPage);
+      else if (currentTab === 'audit') loadAudit();
+      else loadSection(currentTab, currentPage);
+    }, 60_000);
+  });
+
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function setTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('jobFilters').style.display = tab === 'jobs' ? 'flex' : 'none';
+    currentPage = 1;
+    if (tab === 'jobs')     loadJobs(1);
+    if (tab === 'blogs')    loadSection('blogs', 1);
+    if (tab === 'products') loadSection('products', 1);
+    if (tab === 'services') loadSection('services', 1);
+    if (tab === 'audit')    loadAudit();
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const { data } = await apiFetch('/api/stats');
+      document.getElementById('s-jobs').textContent     = data.jobs;
+      document.getElementById('s-products').textContent = data.products;
+      document.getElementById('s-blogs').textContent    = data.blogs;
+      document.getElementById('s-services').textContent = data.services;
+      if (data.lastSync) {
+        const d = new Date(data.lastSync.runAt);
+        document.getElementById('s-last').textContent =
+          d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+    } catch {}
+  }
+
+  // ── Jobs ───────────────────────────────────────────────────────────────────
+  async function loadJobs(page) {
+    currentPage = page;
+    setContent('<div class="empty"><span class="spinner"></span></div>');
+    const niche    = document.getElementById('f-niche').value.trim();
+    const platform = document.getElementById('f-platform').value.trim();
+    const tool     = document.getElementById('f-tool').value.trim();
+    const params   = new URLSearchParams({ page, limit: 20 });
+    if (niche)    params.set('niche',    niche);
+    if (platform) params.set('platform', platform);
+    if (tool)     params.set('tool',     tool);
+
+    const { data, meta } = await apiFetch(`/api/jobs?${params}`);
+    totalPages = meta.pages;
+    renderPagination(meta, loadJobs);
+
+    if (!data.length) {
+      setContent('<div class="empty"><i data-lucide="inbox"></i>No jobs found.</div>');
+      lucide.createIcons();
+      return;
+    }
+
+    const html = data.map(job => `
+      <div class="card" onclick="openJob(${job.id})">
+        <div class="card-title">${esc(job.title)}</div>
+        <div class="card-desc">${esc(job.description ?? 'No description')}</div>
+        <div class="tags">
+          ${job.niche    ? `<span class="tag">${esc(job.niche)}</span>` : ''}
+          ${job.platform ? `<span class="tag cyan">${esc(job.platform)}</span>` : ''}
+          ${job.tool     ? `<span class="tag green">${esc(job.tool)}</span>` : ''}
+        </div>
+        <div class="counts">
+          <span class="count-item"><i data-lucide="package"></i>${job._count.products} products</span>
+          <span class="count-item"><i data-lucide="file-text"></i>${job._count.blogs} blogs</span>
+          <span class="count-item"><i data-lucide="tool"></i>${job._count.services} services</span>
+        </div>
+      </div>`).join('');
+
+    setContent(`<div class="grid">${html}</div>`);
+    lucide.createIcons();
+  }
+
+  async function openJob(id) {
+    const { data } = await apiFetch(`/api/jobs/${id}`);
+    const j = data;
+    let html = `
+      <h2>${esc(j.title)}</h2>
+      <div class="tags" style="margin-bottom:1.1rem">
+        ${j.niche    ? `<span class="tag">${esc(j.niche)}</span>` : ''}
+        ${j.platform ? `<span class="tag cyan">${esc(j.platform)}</span>` : ''}
+        ${j.tool     ? `<span class="tag green">${esc(j.tool)}</span>` : ''}
+      </div>
+      <section><h3>Description</h3><p>${esc(j.description ?? '—')}</p></section>
+    `;
+    if (j.upworkUrl) html += `<section><h3>Upwork URL</h3><p><a href="${esc(j.upworkUrl)}" target="_blank" style="color:var(--accent2)">${esc(j.upworkUrl)}</a></p></section>`;
+
+    if (j.products?.length) {
+      html += `<section><h3>Products (${j.products.length})</h3>`;
+      j.products.forEach(p => {
+        html += `<p style="font-weight:600;margin:.5rem 0 .2rem;color:var(--text)">${esc(p.repoName ?? 'Repo')}</p>`;
+        if (p.description) html += `<p>${esc(p.description)}</p>`;
+        if (p.readme) html += `<pre>${esc(p.readme.slice(0, 800))}${p.readme.length > 800 ? '\n…' : ''}</pre>`;
+      });
+      html += '</section>';
+    }
+    if (j.blogs?.length) {
+      html += `<section><h3>Blogs (${j.blogs.length})</h3>`;
+      j.blogs.forEach(b => {
+        html += `<p style="font-weight:600;margin:.5rem 0 .2rem;color:var(--text)">${esc(b.title ?? 'Blog')}</p>`;
+        if (b.content) html += `<p>${esc(b.content.slice(0, 400))}${b.content.length > 400 ? '…' : ''}</p>`;
+      });
+      html += '</section>';
+    }
+    if (j.services?.length) {
+      html += `<section><h3>Services (${j.services.length})</h3>`;
+      j.services.forEach(s => {
+        html += `<p style="font-weight:600;margin:.5rem 0 .2rem;color:var(--text)">${esc(s.title ?? 'Service')}</p>`;
+        if (s.content) html += `<p>${esc(s.content.slice(0, 300))}${s.content.length > 300 ? '…' : ''}</p>`;
+      });
+      html += '</section>';
+    }
+
+    document.getElementById('modalContent').innerHTML = html;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  // ── Generic section loader ─────────────────────────────────────────────────
+  async function loadSection(section, page) {
+    currentPage = page;
+    setContent('<div class="empty"><span class="spinner"></span></div>');
+    const { data, meta } = await apiFetch(`/api/${section}?page=${page}&limit=20`);
+    totalPages = meta.pages;
+    renderPagination(meta, (p) => loadSection(section, p));
+
+    if (!data.length) {
+      setContent(`<div class="empty"><i data-lucide="inbox"></i>No ${section} yet.</div>`);
+      lucide.createIcons();
+      return;
+    }
+
+    const cardFn = section === 'blogs'    ? blogCard
+                 : section === 'products' ? productCard
+                                          : serviceCard;
+    setContent(`<div class="grid">${data.map(cardFn).join('')}</div>`);
+    lucide.createIcons();
+  }
+
+  function blogCard(b) {
+    return `<div class="card" onclick="openBlog(${b.id})" style="cursor:pointer">
+      <div class="card-title">${esc(b.title ?? 'Untitled')}</div>
+      <div class="card-desc">${esc(b.content ?? '')}</div>
+      <div class="tags">
+        <span class="tag yellow">Blog</span>
+        ${b.job ? `<span class="tag">${esc(b.job.niche ?? '')}</span>` : ''}
+      </div>
+    </div>`;
+  }
+  function productCard(p) {
+    return `<div class="card" onclick="openProduct(${p.id})" style="cursor:pointer">
+      <div class="card-title">${esc(p.repoName ?? 'Repo')}</div>
+      <div class="card-desc">${esc(p.description ?? '')}</div>
+      <div class="tags">
+        <span class="tag green">Product</span>
+        ${p.job ? `<span class="tag">${esc(p.job.niche ?? '')}</span>` : ''}
+      </div>
+    </div>`;
+  }
+  function serviceCard(s) {
+    return `<div class="card" onclick="openService(${s.id})" style="cursor:pointer">
+      <div class="card-title">${esc(s.title ?? 'Service')}</div>
+      <div class="card-desc">${esc(s.content ?? '')}</div>
+      <div class="tags">
+        <span class="tag cyan">Service</span>
+        ${s.job ? `<span class="tag">${esc(s.job.niche ?? '')}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  async function openBlog(id) {
+    document.getElementById('modalContent').innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    document.getElementById('modal').classList.add('open');
+    try {
+      const { data: b } = await apiFetch(`/api/blogs/${id}`);
+      let html = `
+        <h2>${esc(b.title ?? 'Blog Post')}</h2>
+        <div class="tags" style="margin-bottom:1.1rem">
+          <span class="tag yellow">Blog</span>
+          ${b.job?.niche    ? `<span class="tag">${esc(b.job.niche)}</span>` : ''}
+          ${b.job?.platform ? `<span class="tag cyan">${esc(b.job.platform)}</span>` : ''}
+        </div>`;
+      if (b.job?.title) html += `<section><h3>Related Job</h3><p>${esc(b.job.title)}</p></section>`;
+      if (b.content) html += `<section><h3>Full Content</h3><pre style="white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow-y:auto">${esc(b.content)}</pre></section>`;
+      document.getElementById('modalContent').innerHTML = html;
+    } catch (e) {
+      document.getElementById('modalContent').innerHTML = `<p style="color:var(--error)">Failed to load blog: ${esc(e.message)}</p>`;
+    }
+  }
+
+  async function openProduct(id) {
+    document.getElementById('modalContent').innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    document.getElementById('modal').classList.add('open');
+    try {
+      const { data: p } = await apiFetch(`/api/products/${id}`);
+      let topics = [];
+      try { topics = JSON.parse(p.topics ?? '[]'); } catch {}
+      let html = `
+        <h2>${esc(p.repoName ?? 'Product')}</h2>
+        <div class="tags" style="margin-bottom:1.1rem">
+          <span class="tag green">Product</span>
+          ${p.job?.niche ? `<span class="tag">${esc(p.job.niche)}</span>` : ''}
+          ${topics.slice(0,5).map(t => `<span class="tag cyan">${esc(t)}</span>`).join('')}
+        </div>`;
+      if (p.job?.title)  html += `<section><h3>Related Job</h3><p>${esc(p.job.title)}</p></section>`;
+      if (p.description) html += `<section><h3>Description</h3><p>${esc(p.description)}</p></section>`;
+      if (p.readme)      html += `<section><h3>README</h3><pre style="white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow-y:auto">${esc(p.readme)}</pre></section>`;
+      document.getElementById('modalContent').innerHTML = html;
+    } catch (e) {
+      document.getElementById('modalContent').innerHTML = `<p style="color:var(--error)">Failed to load product: ${esc(e.message)}</p>`;
+    }
+  }
+
+  async function openService(id) {
+    document.getElementById('modalContent').innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    document.getElementById('modal').classList.add('open');
+    try {
+      const { data: s } = await apiFetch(`/api/services/${id}`);
+      let html = `
+        <h2>${esc(s.title ?? 'Service')}</h2>
+        <div class="tags" style="margin-bottom:1.1rem">
+          <span class="tag cyan">Service</span>
+          ${s.job?.niche ? `<span class="tag">${esc(s.job.niche)}</span>` : ''}
+        </div>`;
+      if (s.job?.title) html += `<section><h3>Related Job</h3><p>${esc(s.job.title)}</p></section>`;
+      if (s.content)    html += `<section><h3>Full Content</h3><pre style="white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow-y:auto">${esc(s.content)}</pre></section>`;
+      document.getElementById('modalContent').innerHTML = html;
+    } catch (e) {
+      document.getElementById('modalContent').innerHTML = `<p style="color:var(--error)">Failed to load service: ${esc(e.message)}</p>`;
+    }
+  }
+
+  // ── Audit log ──────────────────────────────────────────────────────────────
+  async function loadAudit() {
+    setContent('<div class="empty"><span class="spinner"></span></div>');
+    document.getElementById('pagination').innerHTML = '';
+    const { data } = await apiFetch('/api/audit?limit=100');
+
+    if (!data.length) {
+      setContent('<div class="empty"><i data-lucide="clipboard-list"></i>No audit entries yet.</div>');
+      lucide.createIcons();
+      return;
+    }
+
+    const rows = data.map(r => `
+      <tr>
+        <td>${new Date(r.runAt).toLocaleString()}</td>
+        <td>${esc(r.tableName)}</td>
+        <td>${r.rowsSynced}</td>
+        <td>${r.durationMs != null ? r.durationMs + 'ms' : '—'}</td>
+        <td>${r.error
+          ? `<span class="status-fail"><i data-lucide="x-circle"></i>${esc(r.error.slice(0,80))}</span>`
+          : `<span class="status-ok"><i data-lucide="check-circle"></i>OK</span>`
+        }</td>
+      </tr>`).join('');
+
+    setContent(`
+      <table class="audit-table">
+        <thead><tr><th>Time</th><th>Table</th><th>Rows</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`);
+    lucide.createIcons();
+  }
+
+  // ── Manual sync trigger ────────────────────────────────────────────────────
+  async function triggerSync() {
+    const btn = document.getElementById('syncBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Syncing…';
+    try {
+      const res  = await fetch('/api/sync', { method: 'POST' });
+      const body = await res.json();
+      const d    = body.data;
+      if (d.skipped) {
+        toast('Sync already running — skipped', 'warn');
+      } else {
+        toast(`Sync complete: ${d.jobsSynced} synced, ${d.jobsFailed} failed (${d.durationMs}ms)`, 'ok');
+      }
+      loadStats();
+      if (currentTab === 'audit') loadAudit();
+    } catch (e) {
+      toast('Sync request failed', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="refresh-cw"></i> Sync Now';
+      lucide.createIcons();
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  async function apiFetch(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function setContent(html) {
+    document.getElementById('content').innerHTML = html;
+  }
+
+  function renderPagination(meta, loadFn) {
+    const el = document.getElementById('pagination');
+    if (meta.pages <= 1) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <button onclick="(${loadFn.name})(${meta.page - 1})" ${meta.page <= 1 ? 'disabled' : ''}>← Prev</button>
+      <span>Page ${meta.page} of ${meta.pages} &nbsp;·&nbsp; ${meta.total} total</span>
+      <button onclick="(${loadFn.name})(${meta.page + 1})" ${meta.page >= meta.pages ? 'disabled' : ''}>Next →</button>`;
+  }
+
+  function clearFilters() {
+    document.getElementById('f-niche').value = '';
+    document.getElementById('f-platform').value = '';
+    document.getElementById('f-tool').value = '';
+    loadJobs(1);
+  }
+
+  function closeModal(e) {
+    if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
+  }
+
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  let _toastTimer;
+  function toast(msg, type = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.style.borderColor = type === 'ok'   ? 'rgba(34,197,94,0.4)'
+                         : type === 'warn' ? 'rgba(245,158,11,0.4)'
+                                           : 'rgba(239,68,68,0.4)';
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+  }
+</script>
+</body>
+</html>

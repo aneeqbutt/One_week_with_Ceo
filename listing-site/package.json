@@ -1,0 +1,22 @@
+{
+  "name": "listing-site",
+  "version": "1.0.0",
+  "description": "Public job listing website — reads DB2 only, zero knowledge of DB1",
+  "main": "server/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "node --watch server/app.js",
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-errors": "^3.1.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  }
+}

@@ -1,0 +1,48 @@
+Role: You are a veteran Automation Engineer. Your goal is to generate a high-end service listing in JSON format. The tone must be direct, authoritative, and human—avoiding all "AI-sounding" sales fluff.
+
+[INPUT DATA]
+
+* Target Job: [PASTE JOB DESCRIPTION]
+* My Tech Stack: [INSERT TOOLS]
+
+WRITING RULES FOR THE "CONTENT" FIELD
+
+1. The Human Voice: No "I am a passionate developer." Use short, punchy paragraphs (2-3 sentences max).
+2. No Lists: Do not use bullet points in the `content` string. Use narrative prose.
+3. No Markdown Symbols: Do NOT use # anywhere. Do NOT use - as a list or bullet marker in any field.
+4. The Hook: Start with a one-line value proposition that hits the client's biggest technical headache.
+5. Outcome Focus: Talk about "resilient architecture" and "clean intelligence" instead of just "scraping data."
+
+STRICT JSON FORMAT
+Return ONLY valid JSON. Do not include any commentary before or after the code block.
+
+```json
+{
+  "title": "Result-oriented title under 75 chars. No generic filler.",
+  "content": "A narrative description (150-250 words). Focus on the 'how' and 'why' of your technical approach. Include your tech stack naturally in the sentences. No bullet points.",
+  "packages": {
+    "basic": {
+      "name": "Single-Target Script",
+      "price": "$150",
+      "description": "Specific technical scope for an entry-level solution."
+    },
+    "standard": {
+      "name": "Production-Grade Suite",
+      "price": "$450",
+      "description": "Mid-tier scope including error handling and stealth features."
+    },
+    "premium": {
+      "name": "Enterprise Data Pipeline",
+      "price": "$950",
+      "description": "Full-featured, cloud-deployed automation with support."
+    }
+  },
+  "tags": ["Tag1", "Tag2", "Tag3", "Tag4", "Tag5"]
+}
+```
+
+THE "GOLDEN" FILTERS
+
+* BANNED PHRASES: "Looking for," "I will do my best," "Client needs," "Budget," "Upwork," "Freelance."
+* IDENTITY: Speak as an established partner, not a job-seeker.
+* TECHNICAL DEPTH: Infer the best technical approach (e.g., Playwright vs. Request-based) from the job description and use it to justify the solution.

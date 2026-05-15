@@ -1,0 +1,238 @@
+xiaohongshu-profile-scraper/src/main.py
+pyimport argparse
+import json
+import logging
+import os
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
+import requests
+from dateutil import tz
+from tqdm import tqdm
+
+from src.utils.cookies_helper import load_cookies
+from src.utils.image_downloader import download_image
+from src.utils.parser import within_range, to_date
+from src.extractors.profile_extractor import fetch_profile
+from src.extractors.post_extractor import fetch_posts
+
+def setup_logger(verbosity: int) -> None:
+ level = logging.WARNING
+ if verbosity == 1:
+ level = logging.INFO
+ elif verbosity >= 2:
+ level = logging.DEBUG
+ logging.basicConfig(
+ level=level,
+ format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+ datefmt="%Y-%m-%d %H:%M:%S",
+ )
+
+def read_users(file_path: str) -> List[str]:
+ if not os.path.exists(file_path):
+ logging.error("Input file not found: %s", file_path)
+ return []
+ with open(file_path, "r", encoding="utf-8") as f:
+ users = [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
+ return users
+
+def read_settings(settings_path: str) -> Dict:
+ if not os.path.exists(settings_path):
+ logging.warning("Settings file not found at %s. Using safe defaults.", settings_path)
+ return {}
+ with open(settings_path, "r", encoding="utf-8") as f:
+ data = json.load(f)
+ return data
+
+def build_session(settings: Dict, cookies_path: Optional[str]) -> requests.Session:
+ session = requests.Session()
+ headers = {
+ "User-Agent": settings.get(
+ "user_agent",
+ "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+ "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+ ),
+ "Accept-Language": settings.get("accept_language", "en-US,en;q=0.9,zh-CN;q=0.8"),
+ "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+ "Connection": "keep-alive",
+ }
+ session.headers.update(headers)
+ # Load cookies if provided
+ cookie_jar = load_cookies(cookies_path) if cookies_path else None
+ if cookie_jar:
+ session.cookies.update(cookie_jar)
+ logging.info("Loaded %d cookies.", len(cookie_jar))
+ else:
+ logging.info("No cookies loaded. Public data only may be available.")
+ session.timeout = settings.get("http_timeout", 20)
+ return session
+
+def ensure_dirs(path: str) -> None:
+ os.makedirs(os.path.dirname(path), exist_ok=True)
+
+def date_range_from_settings(settings: Dict) -> Tuple[Optional[datetime], Optional[datetime]]:
+ start = to_date(settings.get("date_from")) if settings.get("date_from") else None
+ end = to_date(settings.get("date_to")) if settings.get("date_to") else None
+ return start, end
+
+def orchestrate_for_user(
+ session: requests.Session,
+ user_ref: str,
+ settings: Dict,
+ date_min: Optional[datetime],
+ date_max: Optional[datetime],
+) -> Dict:
+ logger = logging.getLogger("orchestrator")
+ throttle_s = float(settings.get("throttle_seconds", 1.0))
+ download_images = bool(settings.get("download_image", False))
+ image_dir = settings.get("image_dir", "data/outputs/images")
+ max_posts = settings.get("max_posts_per_user")
+
+ base_url = settings.get("base_url", "https://www.xiaohongshu.com")
+ profile = fetch_profile(session, base_url, user_ref)
+ time.sleep(throttle_s)
+
+ posts = fetch_posts(
+ session=session,
+ base_url=base_url,
+ profile=profile,
+ date_min=date_min,
+ date_max=date_max,
+ limit=max_posts,
+ enrich_with_cookies=(session.cookies is not None and len(session.cookies) > 0),
+ )
+
+ # Optional filter by date range (double-check) and download images
+ filtered_posts = []
+ for p in posts:
+ post_date = to_date(p.get("date"))
+ if within_range(post_date, date_min, date_max):
+ filtered_posts.append(p)
+
+ if download_images:
+ ensure_dirs(os.path.join(image_dir, ".keep"))
+ with ThreadPoolExecutor(max_workers=min(8, max(1, os.cpu_count() or 2))) as pool:
+ futures = []
+ for p in filtered_posts:
+ cover = p.get("cover")
+ date_str = p.get("date") or "unknown"
+ post_id = p.get("id") or "unknown"
+ if cover:
+ fname = f"{date_str}_cover_{post_id}.webp"
+ dest = os.path.join(image_dir, fname)
+ futures.append(pool.submit(download_image, session, cover, dest))
+ for fut in as_completed(futures):
+ try:
+ fut.result()
+ except Exception as e:
+ logger.debug("Image download worker error: %s", e)
+
+ return {
+ "profile": profile,
+ "posts": filtered_posts,
+ "count": len(filtered_posts),
+ }
+
+def main():
+ parser = argparse.ArgumentParser(
+ description="XiaoHongShu Profile Scraper - scrape profiles and posts into structured JSON."
+ )
+ parser.add_argument(
+ "-i",
+ "--input",
+ default="data/inputs/users_list.txt",
+ help="Path to input file containing one user id/username per line.",
+ )
+ parser.add_argument(
+ "-o",
+ "--output",
+ default="data/outputs/scraped_data.json",
+ help="Path to output JSON file.",
+ )
+ parser.add_argument(
+ "-s",
+ "--settings",
+ default="src/config/settings.example.json",
+ help="Path to settings JSON (copy to your own file and edit if needed).",
+ )
+ parser.add_argument(
+ "-c",
+ "--cookies",
+ default=None,
+ help="Path to cookies JSON (array of {name, value, domain, path}) or Netscape format.",
+ )
+ parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase verbosity.")
+ args = parser.parse_args()
+
+ setup_logger(args.verbose)
+
+ settings = read_settings(args.settings)
+ session = build_session(settings, args.cookies)
+ date_min, date_max = date_range_from_settings(settings)
+
+ users = read_users(args.input)
+ if not users:
+ logging.error("No users to process. Exiting.")
+ sys.exit(2)
+
+ ensure_dirs(args.output)
+
+ all_results = []
+ errors: List[Dict] = []
+ pbar = tqdm(users, desc="Scraping users", unit="user")
+ for user_ref in pbar:
+ pbar.set_postfix(user=user_ref)
+ try:
+ result = orchestrate_for_user(session, user_ref, settings, date_min, date_max)
+ all_results.append({"user": user_ref, **result})
+ # polite throttling between users
+ time.sleep(float(settings.get("throttle_seconds_between_users", 1.5)))
+ except Exception as e:
+ logging.exception("Failed to process user '%s': %s", user_ref, e)
+ errors.append({"user": user_ref, "error": str(e)})
+
+ # Add metadata
+ now = datetime.now(tz=tz.tzlocal()).isoformat()
+ payload = {
+ "generated_at": now,
+ "total_users": len(users),
+ "success_users": len(all_results),
+ "errors": errors,
+ "data": all_results,
+ }
+
+ with open(args.output, "w", encoding="utf-8") as f:
+ json.dump(payload, f, ensure_ascii=False, indent=2)
+
+ logging.info("Wrote %s", args.output)
+ if errors:
+ logging.warning("Completed with %d errors.", len(errors))
+ else:
+ logging.info("Completed successfully.")
+
+if __name__ == "__main__":
+ main()
+
+xiaohongshu-profile-scraper/src/utils/parser.py
+pyfrom __future__ import annotations
+
+import logging
+from datetime import datetime
+from typing import Optional
+
+from dateutil import parser as dateparser
+
+ISO_FMT = "%Y-%m-%d"
+
+def to_date(value: Optional[str]) -> Optional[datetime]:
+ """
+ Convert date string to datetime (no timezone). Accepts YYYY-MM-DD or most natural strings.
+ Returns None if value is falsy or cannot be parsed.
+ """
+ if not value:
+ return None
+ value = value.strip()
+ // TRUNCATED SAMPLE FOR TESTING

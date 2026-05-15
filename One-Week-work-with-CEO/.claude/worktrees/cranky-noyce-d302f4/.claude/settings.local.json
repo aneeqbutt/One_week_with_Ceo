@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(ls C:/Users/aneeq/Desktop/)",
+      "Bash(node -e ' *)",
+      "Bash(findstr /i \"script\")",
+      "Bash(node build-dev.js)",
+      "Bash(pip install *)"
+    ]
+  }
+}

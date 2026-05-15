@@ -1,0 +1,23 @@
+{
+  "name": "gologin-github-automation",
+  "version": "1.0.0",
+  "description": "Automate GitHub repo starring using GoLogin browser profiles",
+  "main": "gologin-github-star-v2.js",
+  "type": "module",
+  "scripts": {
+    "start": "node gologin-github-star-v2.js",
+    "test": "node test-connection.js"
+  },
+  "keywords": [
+    "gologin",
+    "github",
+    "automation",
+    "puppeteer"
+  ],
+  "author": "Bitbash",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer-core": "^21.5.2",
+    "gologin": "^2.1.33"
+  }
+}

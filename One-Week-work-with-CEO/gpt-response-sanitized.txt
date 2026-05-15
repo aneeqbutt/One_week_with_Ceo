@@ -1,0 +1,894 @@
+target-product-reviews-scraper/src/main.py
+pythonimport argparse
+import json
+import logging
+import sys
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+
+from extractors.target_parser import TargetReviewsScraper
+from extractors.review_utils import (
+ parse_product_id_from_url,
+ build_product_summary,
+)
+from outputs.json_exporter import JsonExporter
+
+LOGGER = logging.getLogger(__name__)
+
+def setup_logging(verbose: bool = False) -> None:
+ level = logging.DEBUG if verbose else logging.INFO
+ logging.basicConfig(
+ level=level,
+ format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+ )
+
+def load_settings(config_path: Optional[Path]) -> Dict[str, Any]:
+ """
+ Load configuration from JSON file if it exists.
+ Falls back to default settings if file is missing or invalid.
+ """
+ default_settings: Dict[str, Any] = {
+ "user_agent": (
+ "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+ "AppleWebKit/537.36 (KHTML, like Gecko) "
+ "Chrome/124.0 Safari/537.36"
+ ),
+ "request_timeout": 10,
+ "max_reviews": None,
+ "output_dir": "data",
+ "output_prefix": "target_reviews_",
+ }
+
+ if config_path is None:
+ LOGGER.info("No config path provided. Using default settings.")
+ return default_settings
+
+ if not config_path.exists():
+ LOGGER.warning(
+ "Config file %s not found. Using default settings.", config_path
+ )
+ return default_settings
+
+ try:
+ with config_path.open("r", encoding="utf-8") as f:
+ loaded = json.load(f)
+ if not isinstance(loaded, dict):
+ raise ValueError("Config root must be a JSON object")
+ merged = default_settings.copy()
+ merged.update(loaded)
+ LOGGER.info("Loaded configuration from %s", config_path)
+ return merged
+ except Exception as exc:
+ LOGGER.error("Failed to load config from %s: %s", config_path, exc)
+ LOGGER.info("Falling back to default settings.")
+ return default_settings
+
+def read_urls_from_file(path: Path) -> List[str]:
+ """
+ Read product URLs (one per line) from a text file.
+ Empty lines and comments starting with '#' are ignored.
+ """
+ if not path.exists():
+ raise FileNotFoundError(f"Input file not found: {path}")
+
+ urls: List[str] = []
+ with path.open("r", encoding="utf-8") as f:
+ for line in f:
+ line = line.strip()
+ if not line or line.startswith("#"):
+ continue
+ urls.append(line)
+
+ if not urls:
+ raise ValueError(f"No URLs found in input file: {path}")
+
+ return urls
+
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+ parser = argparse.ArgumentParser(
+ description="Scrape product reviews from Target.com and export to JSON."
+ )
+ parser.add_argument(
+ "urls",
+ nargs="*",
+ help="Target product URLs to scrape. "
+ "If omitted, URLs will be read from data/sample_input.txt",
+ )
+ parser.add_argument(
+ "-c",
+ "--config",
+ help="Path to configuration JSON file "
+ "(defaults to src/config/settings.example.json)",
+ )
+ parser.add_argument(
+ "-o",
+ "--output-dir",
+ help="Directory to store output JSON files "
+ "(overrides config setting if provided)",
+ )
+ parser.add_argument(
+ "-v",
+ "--verbose",
+ action="store_true",
+ help="Enable verbose debug logging",
+ )
+ return parser.parse_args(argv)
+
+def main(argv: Optional[List[str]] = None) -> int:
+ args = parse_args(argv)
+ setup_logging(verbose=args.verbose)
+
+ project_root = Path(__file__).resolve().parents[1]
+ default_config_path = project_root / "src" / "config" / "settings.example.json"
+ config_path = Path(args.config).resolve() if args.config else default_config_path
+
+ settings = load_settings(config_path)
+
+ output_dir = (
+ Path(args.output_dir).resolve()
+ if args.output_dir
+ else (project_root / settings.get("output_dir", "data"))
+ )
+ output_dir.mkdir(parents=True, exist_ok=True)
+
+ exporter = JsonExporter(base_dir=output_dir, prefix=settings.get("output_prefix"))
+ scraper = TargetReviewsScraper(
+ user_agent=settings.get("user_agent"),
+ timeout=settings.get("request_timeout", 10),
+ )
+
+ if args.urls:
+ urls = args.urls
+ else:
+ sample_input = project_root / "data" / "sample_input.txt"
+ LOGGER.info("No URLs provided. Reading from %s", sample_input)
+ urls = read_urls_from_file(sample_input)
+
+ overall_success = True
+
+ for url in urls:
+ LOGGER.info("Processing product URL: %s", url)
+ try:
+ product_id = parse_product_id_from_url(url)
+ except ValueError as exc:
+ LOGGER.error("Failed to extract product ID from URL '%s': %s", url, exc)
+ overall_success = False
+ continue
+
+ try:
+ reviews = scraper.fetch_reviews_for_product(
+ product_url=url,
+ product_id=product_id,
+ max_reviews=settings.get("max_reviews"),
+ )
+ except Exception as exc:
+ LOGGER.exception(
+ "Failed to fetch reviews for product %s (%s): %s",
+ product_id,
+ url,
+ exc,
+ )
+ overall_success = False
+ continue
+
+ if not reviews:
+ LOGGER.warning(
+ "No reviews found for product %s (%s). Skipping export.",
+ product_id,
+ url,
+ )
+ continue
+
+ summary = build_product_summary(
+ product_url=url,
+ product_id=product_id,
+ reviews=reviews,
+ )
+
+ combined: List[Dict[str, Any]] = [summary] + reviews
+ output_path = exporter.generate_output_path(product_id=product_id)
+
+ try:
+ exporter.write_reviews_to_file(combined, output_path)
+ LOGGER.info("Exported %d records to %s", len(combined), output_path)
+ except Exception as exc:
+ LOGGER.exception("Failed to export reviews for %s: %s", product_id, exc)
+ overall_success = False
+
+ return 0 if overall_success else 1
+
+if __name__ == "__main__":
+ sys.exit(main())
+
+target-product-reviews-scraper/src/extractors/target_parser.py
+pythonimport json
+import logging
+import re
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import requests
+
+from .review_utils import normalise_secondary_ratings
+
+LOGGER = logging.getLogger(__name__)
+
+@dataclass
+class TargetReviewsScraper:
+ """
+ Scrapes review data for a single Target product.
+
+ This implementation attempts to be resilient by:
+ - Looking for embedded JSON objects in the product page HTML.
+ - Falling back to a simple HTML review-card parser.
+ """
+
+ user_agent: str
+ timeout: int = 10
+ max_retries: int = 3
+ backoff_factor: float = 0.5
+
+ def __post_init__(self) -> None:
+ self.session = requests.Session()
+ self.session.headers.update({"User-Agent": self.user_agent})
+
+ def _request_with_retry(self, url: str) -> requests.Response:
+ last_exc: Optional[Exception] = None
+ for attempt in range(1, self.max_retries + 1):
+ try:
+ LOGGER.debug("Fetching URL (attempt %d/%d): %s", attempt, self.max_retries, url)
+ resp = self.session.get(url, timeout=self.timeout)
+ if resp.status_code >= 500:
+ raise requests.HTTPError(
+ f"Server error {resp.status_code} for URL {url}"
+ )
+ return resp
+ except Exception as exc: # noqa: BLE001
+ last_exc = exc
+ sleep_for = self.backoff_factor * (2 ** (attempt - 1))
+ LOGGER.warning(
+ "Request failed for %s (attempt %d/%d): %s. Retrying in %.1fs",
+ url,
+ attempt,
+ self.max_retries,
+ exc,
+ sleep_for,
+ )
+ time.sleep(sleep_for)
+
+ assert last_exc is not None
+ raise last_exc
+
+ def fetch_reviews_for_product(
+ self,
+ product_url: str,
+ product_id: str,
+ max_reviews: Optional[int] = None,
+ ) -> List[Dict[str, Any]]:
+ """
+ Fetch reviews for a product.
+
+ Returns a list of review dictionaries with at least:
+ - Product URL
+ - Product ID
+ - Review ID
+ - Rating
+ - Title
+ - Text
+ - Submitted Date
+ - Helpful Votes
+ - Unhelpful Votes
+ - Author Nickname
+ - Is Incentivized
+ - Is Verified
+ - Secondary Ratings (list of {Label, Value})
+ """
+ LOGGER.info("Fetching reviews for product %s", product_id)
+
+ resp = self._request_with_retry(product_url)
+ resp.raise_for_status()
+ html = resp.text
+
+ reviews = self._extract_reviews_from_embedded_json(
+ html=html,
+ product_url=product_url,
+ product_id=product_id,
+ )
+
+ if not reviews:
+ LOGGER.debug("Embedded JSON reviews not found. Falling back to HTML parser.")
+ reviews = self._extract_reviews_from_html(
+ html=html,
+ product_url=product_url,
+ product_id=product_id,
+ )
+
+ if max_reviews is not None:
+ reviews = reviews[:max_reviews]
+
+ LOGGER.info("Fetched %d reviews for product %s", len(reviews), product_id)
+ return reviews
+
+ # -------------------------------------------------------------------------
+ # Embedded JSON parsing
+ # -------------------------------------------------------------------------
+
+ def _extract_reviews_from_embedded_json(
+ self,
+ html: str,
+ product_url: str,
+ product_id: str,
+ ) -> List[Dict[str, Any]]:
+ """
+ Many modern product pages embed a large JSON blob containing review data.
+ This function scans for JSON-like blocks and attempts to parse review lists.
+ """
+ json_candidates = self._find_json_like_blobs(html)
+ for candidate in json_candidates:
+ try:
+ data = json.loads(candidate)
+ except Exception:
+ continue
+
+ reviews = self._find_reviews_in_json_tree(
+ data=data,
+ product_url=product_url,
+ product_id=product_id,
+ )
+ if reviews:
+ return reviews
+
+ return []
+
+ def _find_json_like_blobs(self, html: str) -> List[str]:
+ """
+ Extract JSON-like blobs from the HTML source.
+ This is intentionally permissive and may parse multiple blobs.
+ """
+ blobs: List[str] = []
+
+ # Common pattern: ... JSON ... 
+ script_pattern = re.compile(
+ r"]*type=[\"']application/ld\+json[\"'][^>]*>(.*?)",
+ re.DOTALL | re.IGNORECASE,
+ )
+ for match in script_pattern.finditer(html):
+ script_content = match.group(1).strip()
+ if script_content:
+ blobs.append(script_content)
+
+ # Fallback: look for JSON objects starting with '{' followed by "reviews"
+ loose_pattern = re.compile(r"\{[^{}]*(\"reviews\"|\"review\")[:\[][^{}]*\}", re.DOTALL)
+ for match in loose_pattern.finditer(html):
+ blobs.append(match.group(0))
+
+ LOGGER.debug("Found %d JSON-like blobs in HTML", len(blobs))
+ return blobs
+
+ def _find_reviews_in_json_tree(
+ self,
+ data: Any,
+ product_url: str,
+ product_id: str,
+ ) -> List[Dict[str, Any]]:
+ """
+ Recursively search for review-like structures inside a JSON tree.
+ """
+ collected: List[Dict[str, Any]] = []
+
+ def visit(node: Any) -> None:
+ if isinstance(node, dict):
+ keys = set(node.keys())
+ # Heuristic: review object
+ required_keys = {"reviewBody", "reviewRating", "datePublished"}
+ if required_keys.issubset(keys):
+ collected.append(self._convert_json_review(node, product_url, product_id))
+ for value in node.values():
+ visit(value)
+ elif isinstance(node, list):
+ for item in node:
+ visit(item)
+
+ visit(data)
+ collected = normalise_secondary_ratings(collected)
+ return collected
+
+ def _convert_json_review(
+ self,
+ node: Dict[str, Any],
+ product_url: str,
+ product_id: str,
+ ) -> Dict[str, Any]:
+ """
+ Convert a generic JSON-LD review node into the unified review schema.
+ """
+ rating_value = None
+ if isinstance(node.get("reviewRating"), dict):
+ rating_value = node["reviewRating"].get("ratingValue")
+
+ # Fallback for different property names
+ rating_value = rating_value or node.get("rating") or node.get("ratingValue")
+
+ try:
+ rating = int(rating_value)
+ except Exception:
+ rating = None
+
+ author = node.get("author")
+ if isinstance(author, dict):
+ author_name = author.get("name") or ""
+ else:
+ author_name = str(author or "")
+
+ review_id = node.get("@id") or node.get("reviewId") or node.get("id") or ""
+
+ review: Dict[str, Any] = {
+ "Product URL": product_url,
+ "Product ID": product_id,
+ "Review ID": review_id,
+ "Rating": rating,
+ "Title": node.get("name") or node.get("headline") or "",
+ "Text": node.get("reviewBody") or "",
+ "Submitted Date": node.get("datePublished") or "",
+ "Helpful Votes": node.get("upvoteCount") or 0,
+ "Unhelpful Votes": node.get("downvoteCount") or 0,
+ "Author Nickname": author_name,
+ "Is Incentivized": bool(node.get("isSponsored") or node.get("isIncentivized", False)),
+ "Is Verified": bool(node.get("isVerified") or node.get("verifiedPurchase", False)),
+ "Secondary Ratings": [],
+ "Photos": [],
+ "Client Responses": [],
+ }
+
+ # Optional: embedded images
+ images = []
+ for key in ("image", "photos", "reviewMedia"):
+ media = node.get(key)
+ if isinstance(media, list):
+ for item in media:
+ if isinstance(item, dict) and item.get("url"):
+ images.append(item["url"])
+ elif isinstance(item, str):
+ images.append(item)
+ elif isinstance(media, dict) and media.get("url"):
+ images.append(media["url"])
+ if images:
+ review["Photos"] = images
+
+ # Optional: merchant responses
+ responses = node.get("publisherResponse") or node.get("sellerResponses")
+ if isinstance(responses, list):
+ review["Client Responses"] = responses
+ elif isinstance(responses, dict):
+ review["Client Responses"] = [responses]
+
+ return review
+
+ # -------------------------------------------------------------------------
+ # HTML parsing fallback
+ # -------------------------------------------------------------------------
+
+ def _extract_reviews_from_html(
+ self,
+ html: str,
+ product_url: str,
+ product_id: str,
+ ) -> List[Dict[str, Any]]:
+ """
+ Very simple HTML parser looking for review cards. This is a heuristic-based
+ fallback and may not capture all reviews, but keeps the scraper functional
+ if embedded JSON is missing.
+ """
+ try:
+ from bs4 import BeautifulSoup # type: ignore
+ except Exception as exc: # noqa: BLE001
+ LOGGER.error(
+ "BeautifulSoup is required for HTML parsing fallback but is not installed: %s",
+ exc,
+ )
+ return []
+
+ soup = BeautifulSoup(html, "html.parser")
+ cards = soup.find_all(attrs={"data-test": re.compile(".*review.*", re.I)})
+
+ reviews: List[Dict[str, Any]] = []
+ for idx, card in enumerate(cards, start=1):
+ title_el = card.find(["h3", "h4"])
+ title = title_el.get_text(strip=True) if title_el else ""
+
+ text_el = card.find("p")
+ text = text_el.get_text(strip=True) if text_el else ""
+
+ rating_el = card.find(attrs={"aria-label": re.compile("out of 5 stars", re.I)})
+ rating = None
+ if rating_el and rating_el.get("aria-label"):
+ m = re.search(r"(\d+(?:\.\d+)?)\s+out of 5", rating_el["aria-label"])
+ if m:
+ try:
+ rating = int(round(float(m.group(1))))
+ except Exception:
+ rating = None
+
+ date_el = card.find("time")
+ date_text = date_el.get("datetime") or date_el.get_text(strip=True) if date_el else ""
+
+ author_el = card.find(attrs={"data-test": re.compile(".*reviewer.*", re.I)})
+ author_name = author_el.get_text(strip=True) if author_el else ""
+
+ review = {
+ "Product URL": product_url,
+ "Product ID": product_id,
+ "Review ID": f"html-{idx}",
+ "Rating": rating,
+ "Title": title,
+ "Text": text,
+ "Submitted Date": date_text,
+ "Helpful Votes": 0,
+ "Unhelpful Votes": 0,
+ "Author Nickname": author_name,
+ "Is Incentivized": False,
+ "Is Verified": False,
+ "Secondary Ratings": [],
+ "Photos": [],
+ "Client Responses": [],
+ }
+ reviews.append(review)
+
+ reviews = normalise_secondary_ratings(reviews)
+ return reviews
+
+target-product-reviews-scraper/src/extractors/review_utils.py
+pythonimport logging
+import re
+from collections import Counter
+from statistics import mean
+from typing import Any, Dict, Iterable, List, Optional
+
+LOGGER = logging.getLogger(__name__)
+
+def parse_product_id_from_url(url: str) -> str:
+ """
+ Extract the Target product ID from a product URL.
+
+ Typical Target URLs look like:
+ https://www.target.com/p/some-product-name/-/A-90171336
+
+ We extract the numeric ID after "A-".
+ """
+ match = re.search(r"/A-(\d+)", url)
+ if not match:
+ raise ValueError(
+ f"Unable to parse product ID from URL: {url!r}. "
+ "Expected pattern '/A-'."
+ )
+ product_id = match.group(1)
+ LOGGER.debug("Parsed product ID %s from URL %s", product_id, url)
+ return product_id
+
+def normalise_secondary_ratings(
+ reviews: Iterable[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+ """
+ Ensure that all reviews have a 'Secondary Ratings' list of
+ {Label, Value} dictionaries. Also normalises various shapes
+ (dicts, nested dicts, etc.) into a consistent format.
+ """
+ normalised: List[Dict[str, Any]] = []
+ for review in reviews:
+ sec = review.get("Secondary Ratings") or review.get("secondaryRatings")
+ formatted: List[Dict[str, Any]] = []
+
+ if isinstance(sec, list):
+ # Already in desired format or close to it
+ for item in sec:
+ if isinstance(item, dict) and "Label" in item and "Value" in item:
+ formatted.append({"Label": str(item["Label"]), "Value": float(item["Value"])})
+ elif isinstance(item, dict) and "label" in item and "value" in item:
+ formatted.append({"Label": str(item["label"]), "Value": float(item["value"])})
+ elif isinstance(sec, dict):
+ # Example: {"comfort": 4.5, "quality": 3, ...}
+ for label, value in sec.items():
+ try:
+ formatted.append({"Label": str(label), "Value": float(value)})
+ except Exception: # noqa: BLE001
+ continue
+
+ review_copy = dict(review)
+ review_copy["Secondary Ratings"] = formatted
+ normalised.append(review_copy)
+
+ return normalised
+
+def build_product_summary(
+ product_url: str,
+ product_id: str,
+ reviews: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+ """
+ Build a product-level summary document from a list of reviews, matching
+ the schema described in the project README.
+ """
+ if not reviews:
+ raise ValueError("Cannot build summary from an empty review list.")
+
+ ratings: List[int] = []
+ recommended_count = 0
+ not_recommended_count = 0
+
+ # Some review feeds may store recommendation flags or booleans
+ for review in reviews:
+ rating = review.get("Rating")
+ if isinstance(rating, (int, float)):
+ ratings.append(int(rating))
+
+ rec_flag = _extract_recommendation_flag(review)
+ if rec_flag is True:
+ recommended_count += 1
+ elif rec_flag is False:
+ not_recommended_count += 1
+
+ rating_distribution: Dict[str, int] = {str(n): 0 for n in range(1, 6)}
+ rating_counter = Counter(ratings)
+ for k, v in rating_counter.items():
+ if 1 = 4]
+ positive_percentage = int(round(len(positive_ratings) / len(ratings) * 100)) if ratings else 0
+
+ secondary_averages = _compute_secondary_averages(reviews)
+
+ summary: Dict[str, Any] = {
+ "Product URL": product_url,
+ "Product ID": product_id,
+ "Review Count": len(reviews),
+ "Recommended Count": recommended_count,
+ "Not Recommended Count": not_recommended_count,
+ "Rating Distribution": rating_distribution,
+ "Average Rating": round(avg_rating, 2),
+ "Positive Percentage": positive_percentage,
+ "Secondary Averages": secondary_averages,
+ }
+ return summary
+
+def _extract_recommendation_flag(review: Dict[str, Any]) -> Optional[bool]:
+ """
+ Attempt to infer whether the reviewer recommends the product.
+ """
+ for key in ("IsRecommended", "isRecommended", "recommended"):
+ if key in review:
+ value = review[key]
+ if isinstance(value, bool):
+ return value
+ if isinstance(value, str):
+ val_lower = value.strip().lower()
+ if val_lower in {"yes", "true", "recommended"}:
+ return True
+ if val_lower in {"no", "false", "not recommended"}:
+ return False
+
+ # Some review feeds include a "recommendation" string field
+ rec_text = review.get("Recommendation") or review.get("recommendation")
+ if isinstance(rec_text, str):
+ rec_lower = rec_text.strip().lower()
+ if "would recommend" in rec_lower or rec_lower.startswith("yes"):
+ return True
+ if "would not recommend" in rec_lower or rec_lower.startswith("no"):
+ return False
+
+ return None
+
+def _compute_secondary_averages(
+ reviews: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+ """
+ Compute averages for secondary ratings (comfort, quality, sizing, style, etc.).
+ """
+ buckets: Dict[str, List[float]] = {}
+
+ for review in reviews:
+ secondary = review.get("Secondary Ratings") or []
+ if not isinstance(secondary, list):
+ continue
+
+ for item in secondary:
+ if not isinstance(item, dict):
+ continue
+ label = str(item.get("Label") or item.get("label") or "").strip().lower()
+ if not label:
+ continue
+ value = item.get("Value") or item.get("value")
+ try:
+ numeric = float(value)
+ except Exception: # noqa: BLE001
+ continue
+ buckets.setdefault(label, []).append(numeric)
+
+ averages: List[Dict[str, Any]] = []
+ for label, values in buckets.items():
+ if not values:
+ continue
+ averages.append(
+ {
+ "Label": label,
+ "Value": round(mean(values), 2),
+ }
+ )
+
+ return averages
+
+target-product-reviews-scraper/src/outputs/json_exporter.py
+pythonimport json
+import logging
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional
+
+LOGGER = logging.getLogger(__name__)
+
+class JsonExporter:
+ """
+ Handles exporting review data to JSON files.
+ """
+
+ def __init__(self, base_dir: Path, prefix: Optional[str] = None) -> None:
+ self.base_dir = Path(base_dir)
+ self.prefix = prefix or "reviews_"
+ self.base_dir.mkdir(parents=True, exist_ok=True)
+ LOGGER.debug("JsonExporter initialised with base_dir=%s prefix=%s", self.base_dir, self.prefix)
+
+ def generate_output_path(self, product_id: str) -> Path:
+ filename = f"{self.prefix}{product_id}.json"
+ path = self.base_dir / filename
+ LOGGER.debug("Generated output path %s for product %s", path, product_id)
+ return path
+
+ def write_reviews_to_file(
+ self,
+ reviews: Iterable[Dict[str, Any]],
+ output_path: Path,
+ indent: int = 2,
+ ) -> None:
+ """
+ Serialize reviews to JSON and write them to file.
+ Existing files will be overwritten.
+ """
+ data_list: List[Dict[str, Any]] = list(reviews)
+
+ tmp_path = output_path.with_suffix(output_path.suffix + ".tmp")
+ LOGGER.debug("Writing %d records to temp file %s", len(data_list), tmp_path)
+
+ try:
+ with tmp_path.open("w", encoding="utf-8") as f:
+ json.dump(data_list, f, ensure_ascii=False, indent=indent)
+
+ tmp_path.replace(output_path)
+ LOGGER.info("Successfully wrote JSON output to %s", output_path)
+ finally:
+ if tmp_path.exists():
+ # If replace failed for some reason, ensure we don't leave a stale temp file
+ if tmp_path != output_path:
+ try:
+ tmp_path.unlink()
+ except Exception: # noqa: BLE001
+ LOGGER.debug("Failed to clean up temp file %s", tmp_path)
+
+target-product-reviews-scraper/src/config/settings.example.json
+json{
+ "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+ "request_timeout": 10,
+ "max_reviews": null,
+ "output_dir": "data",
+ "output_prefix": "target_reviews_"
+}
+
+target-product-reviews-scraper/data/sample_input.txt
+text# Sample Target product URLs (replace with your own before running)
+https://www.target.com/p/boys-short-sleeve-performance-uniform-polo-shirt-cat-jack-black/-/A-90171336
+https://www.target.com/p/women-s-slim-fit-short-sleeve-t-shirt-a-new-day/-/A-89676621
+
+target-product-reviews-scraper/data/sample_output.json
+json[
+ {
+ "Product URL": "https://www.target.com/p/boys-short-sleeve-performance-uniform-polo-shirt-cat-jack-black/-/A-90171336",
+ "Product ID": "90171336",
+ "Review Count": 2,
+ "Recommended Count": 1,
+ "Not Recommended Count": 1,
+ "Rating Distribution": {
+ "1": 1,
+ "2": 0,
+ "3": 0,
+ "4": 0,
+ "5": 1
+ },
+ "Average Rating": 3.0,
+ "Positive Percentage": 50,
+ "Secondary Averages": [
+ {
+ "Label": "comfort",
+ "Value": 4.5
+ },
+ {
+ "Label": "quality",
+ "Value": 3.5
+ }
+ ]
+ },
+ {
+ "Product URL": "https://www.target.com/p/boys-short-sleeve-performance-uniform-polo-shirt-cat-jack-black/-/A-90171336",
+ "Product ID": "90171336",
+ "Review ID": "example-1",
+ "Rating": 5,
+ "Title": "Perfect school shirt",
+ "Text": "Great quality and fit. My son loves it and it washes well.",
+ "Submitted Date": "2025-08-03T21:56:08.000+00:00",
+ "Helpful Votes": 3,
+ "Unhelpful Votes": 0,
+ "Author Nickname": "HappyDad",
+ "Is Incentivized": false,
+ "Is Verified": true,
+ "Secondary Ratings": [
+ {
+ "Label": "comfort",
+ "Value": 5
+ },
+ {
+ "Label": "quality",
+ "Value": 4
+ }
+ ],
+ "Photos": [],
+ "Client Responses": []
+ },
+ {
+ "Product URL": "https://www.target.com/p/boys-short-sleeve-performance-uniform-polo-shirt-cat-jack-black/-/A-90171336",
+ "Product ID": "90171336",
+ "Review ID": "example-2",
+ "Rating": 1,
+ "Title": "Color faded quickly",
+ "Text": "After a few washes the shirt looks worn out.",
+ "Submitted Date": "2025-08-10T11:16:08.000+00:00",
+ "Helpful Votes": 1,
+ "Unhelpful Votes": 2,
+ "Author Nickname": "UnhappyCustomer",
+ "Is Incentivized": false,
+ "Is Verified": true,
+ "Secondary Ratings": [
+ {
+ "Label": "comfort",
+ "Value": 4
+ },
+ {
+ "Label": "quality",
+ "Value": 3
+ }
+ ],
+ "Photos": [],
+ "Client Responses": []
+ }
+]
+
+target-product-reviews-scraper/requirements.txt
+textrequests>=2.32.0
+beautifulsoup4>=4.12.0
+
+target-product-reviews-scraper/LICENSE
+textMIT License
+
+Copyright (c) 2025 Target Product Reviews Scraper
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

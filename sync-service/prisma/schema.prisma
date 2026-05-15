@@ -1,0 +1,110 @@
+// ─── DB2 Schema — listing_site database ──────────────────────────────────────
+//
+// source_id on every table = the PK from the matching DB1 table.
+// UNIQUE constraint on source_id makes every insert idempotent:
+//   re-syncing the same DB1 record will hit a P2002 unique violation,
+//   which the sync service catches and treats as "already done."
+//
+// onDelete: Cascade ensures that if a job is removed from DB2, all its
+// related products/blogs/services are automatically cleaned up.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id          Int       @id @default(autoincrement())
+  sourceId    Int       @unique @map("source_id")
+  campaignId  String    @map("campaign_id")
+  title       String
+  description String?
+  niche       String?
+  platform    String?
+  tool        String?
+  upworkUrl   String?   @map("upwork_url")
+  searchQuery String?   @map("search_query")
+  createdAt   DateTime  @map("created_at")
+  syncedAt    DateTime  @default(now()) @map("synced_at")
+
+  products Product[]
+  blogs    Blog[]
+  services Service[]
+
+  @@map("jobs")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  jobId       Int      @map("job_id")
+  sourceId    Int      @unique @map("source_id")
+  repoName    String?  @map("repo_name")
+  description String?
+  readme      String?
+  topics      Json     @default("[]")
+  createdAt   DateTime @map("created_at")
+  syncedAt    DateTime @default(now()) @map("synced_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("products")
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  jobId     Int      @map("job_id")
+  sourceId  Int      @unique @map("source_id")
+  title     String?
+  content   String?
+  createdAt DateTime @map("created_at")
+  syncedAt  DateTime @default(now()) @map("synced_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("blogs")
+}
+
+model Service {
+  id        Int      @id @default(autoincrement())
+  jobId     Int      @map("job_id")
+  sourceId  Int      @unique @map("source_id")
+  title     String?
+  content   String?
+  createdAt DateTime @map("created_at")
+  syncedAt  DateTime @default(now()) @map("synced_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("services")
+}
+
+// One row written per sync cycle per table.
+// error = null  → success row
+// error = TEXT  → failure row
+// Both types must exist in the DB before Loom recording (per PDF requirement).
+model SyncAuditLog {
+  id         Int      @id @default(autoincrement())
+  runAt      DateTime @default(now()) @map("run_at")
+  tableName  String   @map("table_name")
+  rowsSynced Int      @default(0) @map("rows_synced")
+  error      String?
+  durationMs Int?     @map("duration_ms")
+
+  @@map("sync_audit_log")
+}
+
+// One row per logical table being synced (jobs, products, blogs, services).
+// lastSyncedAt advances ONLY after a confirmed DB2 commit — the cron uses this
+// as a high-water mark so it never re-copies already-synced rows.
+model SyncWatermark {
+  id           Int      @id @default(autoincrement())
+  tableName    String   @unique @map("table_name")
+  lastSyncedAt DateTime @map("last_synced_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("sync_watermark")
+}
